@@ -1,6 +1,7 @@
 import requests
 import yaml
 from entities import Match, Team, MatchStats, Venue
+from exceptions import ValueNotFound, BadResponse
 
 
 class SportDataApi:
@@ -19,13 +20,19 @@ class SportDataApi:
             return res.json()["data"]
 
         else:
-            print("Error:", res.status_code)
-            return None
+            raise BadResponse
 
     def get_matches(self, country, league, season, date_from):
-        season_id = self.__get_season_id(country, league, season)
-        params = {"season_id": season_id, "date_from": date_from}
-        res = self.get_response("matches", params=params)
+        try:
+            season_id = self.__get_season_id(country, league, season)
+            params = {"season_id": season_id, "date_from": date_from}
+            res = self.get_response("matches", params=params)
+        except ValueNotFound:
+            print("Season ID not found")
+            return None
+        except BadResponse:
+            print("Bad response from SportData")
+            return None
 
         matches = []
         for mtch in res:
@@ -94,8 +101,7 @@ class SportDataApi:
                 if league["name"] == league_name:
                     return league["league_id"]
         else:
-            print("League not found")
-            return None
+            raise ValueNotFound
 
     def __get_country_id(self, country):
         res = self.get_response("countries")
@@ -104,8 +110,7 @@ class SportDataApi:
                 if cntry["name"] == country:
                     return res[idx]["country_id"]
         else:
-            print("Country not found")
-            return None
+            raise ValueNotFound
 
     def __get_season_id(self, country, league_name, season):
         country_id = self.__get_country_id(country)
@@ -118,5 +123,4 @@ class SportDataApi:
                 if sns["name"] == season:
                     return res[idx]["season_id"]
         else:
-            print("Season not found")
-            return None
+            raise ValueNotFound
