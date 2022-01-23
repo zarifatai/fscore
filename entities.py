@@ -20,12 +20,12 @@ class Team:
 
 
 class MatchStats:
-    def __init__(self, home_score, away_score, ht_score, ft_score, et_store, ps_score):
+    def __init__(self, home_score, away_score, ht_score, ft_score, et_score, ps_score):
         self.home_score = home_score
         self.away_score = away_score
         self.ht_score = ht_score
         self.ft_score = ft_score
-        self.et_store = et_store
+        self.et_score = et_score
         self.ps_score = ps_score
 
 class Venue:
