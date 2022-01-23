@@ -1,5 +1,6 @@
 import requests
 import yaml
+from entities import Match, Team, MatchStats, Venue
 
 
 class SportDataApi:
@@ -27,19 +28,45 @@ class SportDataApi:
         params = {"season_id": season_id, "date_from": date_from}
 
         res = self.get_response("matches", params=params)
-        return res
+
+        matches = []
+        for mtch in res:
+            match_id = mtch["match_id"]
+            status = mtch["status"]
+            match_start_iso = mtch["match_start_iso"]
+            minute = mtch["minute"]
+            referee_id = mtch["referee_id"]
+            h_team = mtch["home_team"]
+            a_team = mtch["away_team"]
+            stats = mtch["stats"]
+            ven = mtch["venue"]
+
+            home_team = Team(h_team["team_id"], h_team["name"], h_team["short_code"], h_team["logo"])
+            away_team = Team(a_team["team_id"], a_team["name"], a_team["short_code"], a_team["logo"])
+
+            match_stats = MatchStats(stats["home_score"], stats["away_score"], stats["ht_score"], stats["ft_score"], stats["et_score"], stats["ps_score"])
+
+            if ven:
+                venue = Venue(ven["venue_id"], ven["name"], ven["capacity"], ven["city"], ven["country_id"])
+            else:
+                venue = None
+
+            matches.append(Match(match_id, status, match_start_iso, minute, referee_id, home_team, away_team, match_stats, venue))
+            
+        return matches
 
     def __get_api_key(self):
         with open("keys.yml") as f:
             return yaml.safe_load(f)["sportdata_api_key"]
 
     def __get_league_id(self, country_id, league_name):
-        res = self.get_response("leagues")
+        params = {"country_id": country_id}
+        res = self.get_response("leagues", params)
 
         if res:
-            for idx, league in enumerate(res):
-                if league["name"] == league_name and league["country_id"] == country_id:
-                    return res[idx]["league_id"]
+            for key, league in res.items():
+                if league["name"] == league_name:
+                    return league["league_id"] 
         else:
             print("League not found")
             return None
