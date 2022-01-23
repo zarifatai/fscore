@@ -1,7 +1,7 @@
 import requests
 import yaml
-from entities import Match, Team, MatchStats, Venue
-from exceptions import ValueNotFound, BadResponse
+from .entities import Match, Team, MatchStats, Venue
+from .exceptions import ValueNotFound, BadResponse
 
 
 class SportDataApi:
